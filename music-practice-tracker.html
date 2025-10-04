@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Every Day - Practice Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #fef5f0;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 218, 224, 0.5) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 280px;
+            height: auto;
+            margin: 0 auto 15px;
+            display: block;
+            filter: drop-shadow(0 4px 20px rgba(255, 105, 180, 0.3));
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ff69b4;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            display: none; /* Logo replaces text */
+        }
+
+        header p {
+            font-size: 1.2em;
+            color: #6b4e71;
+            font-weight: 500;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 182, 193, 0.3);
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            color: #ff69b4;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.3);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #ff69b4, #ff85c1);
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: linear-gradient(135deg, #ff85c1, #ffa0d0);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #ffb6c1, #ffc8d1);
+            color: #6b4e71;
+        }
+
+        .btn-pause:hover {
+            background: linear-gradient(135deg, #ffc8d1, #ffd5dc);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #d4a5c3, #e1b8d3);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(135deg, #e1b8d3, #ecc9df);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #ff69b4, #ff85c1);
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #ff85c1, #ffa0d0);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #ff69b4 0%, #ffb6c1 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(255, 245, 250, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff69b4;
+            transition: transform 0.2s ease;
+        }
+
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #ff69b4;
+            margin-bottom: 5px;
+        }
+
+        .history-duration {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d4a5c3;
+            margin-bottom: 8px;
+        }
+
+        .history-text {
+            color: #4a5568;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .history-label {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .clear-history {
+            background: linear-gradient(135deg, #d4a5c3, #e1b8d3);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .clear-history:hover {
+            background: linear-gradient(135deg, #c494b3, #d4a5c3);
+        }
+
+        .timer-status {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a2e;
+            }
+
+            body::before {
+                background: linear-gradient(135deg, rgba(139, 69, 139, 0.4) 0%, rgba(75, 0, 130, 0.3) 100%);
+            }
+
+            .card {
+                background: rgba(30, 30, 46, 0.95);
+                border: 2px solid rgba(255, 105, 180, 0.3);
+                box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5);
+            }
+
+            header p {
+                color: #ffb6c1;
+                font-weight: 400;
+            }
+
+            .timer-display {
+                color: #ff85c1;
+            }
+
+            label {
+                color: #d4a5c3;
+            }
+
+            textarea, input {
+                background: rgba(40, 40, 60, 0.8);
+                border-color: rgba(255, 105, 180, 0.3);
+                color: #ffffff;
+            }
+
+            textarea::placeholder, input::placeholder {
+                color: rgba(255, 182, 193, 0.5);
+            }
+
+            .history-item {
+                background: rgba(40, 40, 60, 0.6);
+                border-left-color: #ff85c1;
+            }
+
+            .history-text {
+                color: #d4d4d4;
+            }
+
+            .history-label {
+                color: #ffb6c1;
+            }
+
+            .timer-status {
+                color: #d4a5c3;
+            }
+
+            .empty-state {
+                color: #8a8a9e;
+            }
+
+            h2 {
+                color: #ffb6c1 !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 3em;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="ped_podcast_logo.png" alt="Play Every Day" class="logo">
+            <h1>Play Every Day</h1>
+            <p>Track your daily practice sessions</p>
+        </header>
+
+        <!-- Stats Section -->
+        <div class="card">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalTime">0h 0m</div>
+                    <div class="stat-label">Total Practice</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="sessionCount">0</div>
+                    <div class="stat-label">Sessions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="streak">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Section -->
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748;">Today's Practice</h2>
+
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-status" id="timerStatus">Ready to start</div>
+
+            <div class="timer-controls">
+                <button class="btn-start" id="startBtn" onclick="startTimer()">Start</button>
+                <button class="btn-pause hidden" id="pauseBtn" onclick="pauseTimer()">Pause</button>
+                <button class="btn-stop hidden" id="stopBtn" onclick="stopTimer()">Stop</button>
+            </div>
+
+            <div id="sessionForm">
+                <div class="form-group">
+                    <label for="whatPracticed">What are you practicing? (write notes as you go)</label>
+                    <textarea id="whatPracticed" placeholder="E.g., Bile 'Em Cabbage Down, bow control exercises, D string notes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tomorrowGoals">What do you want to work on tomorrow?</label>
+                    <textarea id="tomorrowGoals" placeholder="E.g., Focus on tone in Mary Had a Little Lamb, practice string crossing..."></textarea>
+                </div>
+
+                <button class="btn-save" id="saveBtn" onclick="saveSession()">Save Practice Session</button>
+            </div>
+        </div>
+
+        <!-- Practice History -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #2d3748;">Practice History</h2>
+                <button class="clear-history" onclick="clearHistory()">Clear All</button>
+            </div>
+
+            <div class="history" id="historyList">
+                <div class="empty-state">
+                    <p>No practice sessions yet. Start practicing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let seconds = 0;
+        let isRunning = false;
+        let isPaused = false;
+
+        // Load data on startup
+        window.addEventListener('load', function() {
+            loadHistory();
+            updateStats();
+            loadTomorrowGoals();
+        });
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                isPaused = false;
+                document.getElementById('startBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').classList.remove('hidden');
+                document.getElementById('stopBtn').classList.remove('hidden');
+                document.getElementById('timerStatus').textContent = 'Practice in progress...';
+
+                timerInterval = setInterval(function() {
+                    seconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            } else if (isPaused) {
+                // Resume from pause
+                isPaused = false;
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('timerStatus').textContent = 'Practice in progress...';
+                timerInterval = setInterval(function() {
+                    seconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            if (isRunning && !isPaused) {
+                isPaused = true;
+                clearInterval(timerInterval);
+                document.getElementById('pauseBtn').textContent = 'Resume';
+                document.getElementById('timerStatus').textContent = 'Paused - Take a breath!';
+            } else if (isPaused) {
+                startTimer();
+            }
+        }
+
+        function stopTimer() {
+            if (isRunning && seconds > 0) {
+                isRunning = false;
+                isPaused = false;
+                clearInterval(timerInterval);
+                document.getElementById('startBtn').classList.remove('hidden');
+                document.getElementById('pauseBtn').classList.add('hidden');
+                document.getElementById('stopBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('timerStatus').textContent = 'Great work! Save your session below.';
+                document.getElementById('saveBtn').style.animation = 'pulse 1s ease-in-out 3';
+            }
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            const display =
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(secs).padStart(2, '0');
+
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function saveSession() {
+            const whatPracticed = document.getElementById('whatPracticed').value.trim();
+            const tomorrowGoals = document.getElementById('tomorrowGoals').value.trim();
+
+            if (!whatPracticed) {
+                alert('Please fill in what you practiced!');
+                return;
+            }
+
+            const session = {
+                date: new Date().toISOString(),
+                duration: seconds,
+                whatPracticed: whatPracticed,
+                tomorrowGoals: tomorrowGoals
+            };
+
+            // Save to localStorage
+            let sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            sessions.unshift(session);
+            localStorage.setItem('practiceSessions', JSON.stringify(sessions));
+
+            // Reset form
+            document.getElementById('whatPracticed').value = '';
+            document.getElementById('tomorrowGoals').value = '';
+            document.getElementById('timerDisplay').textContent = '00:00:00';
+            document.getElementById('timerStatus').textContent = 'Session saved! Ready for next practice.';
+            document.getElementById('saveBtn').style.animation = '';
+            seconds = 0;
+
+            // Refresh history and stats
+            loadHistory();
+            updateStats();
+        }
+
+        function loadHistory() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            const historyList = document.getElementById('historyList');
+
+            if (sessions.length === 0) {
+                historyList.innerHTML = '<div class="empty-state"><p>No practice sessions yet. Start practicing!</p></div>';
+                return;
+            }
+
+            historyList.innerHTML = sessions.map(session => {
+                const date = new Date(session.date);
+                const hours = Math.floor(session.duration / 3600);
+                const minutes = Math.floor((session.duration % 3600) / 60);
+                const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-date">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <div class="history-duration">${duration}</div>
+                        <div class="history-text"><span class="history-label">Practiced:</span> ${session.whatPracticed}</div>
+                        ${session.tomorrowGoals ? `<div class="history-text"><span class="history-label">Next goal:</span> ${session.tomorrowGoals}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+
+            // Total time
+            const totalSeconds = sessions.reduce((sum, s) => sum + s.duration, 0);
+            const totalHours = Math.floor(totalSeconds / 3600);
+            const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+            document.getElementById('totalTime').textContent = `${totalHours}h ${totalMinutes}m`;
+
+            // Session count
+            document.getElementById('sessionCount').textContent = sessions.length;
+
+            // Streak calculation
+            const streak = calculateStreak(sessions);
+            document.getElementById('streak').textContent = streak;
+        }
+
+        function calculateStreak(sessions) {
+            if (sessions.length === 0) return 0;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let streak = 0;
+            let checkDate = new Date(today);
+
+            for (let i = 0; i < 365; i++) {
+                const hasSession = sessions.some(s => {
+                    const sessionDate = new Date(s.date);
+                    sessionDate.setHours(0, 0, 0, 0);
+                    return sessionDate.getTime() === checkDate.getTime();
+                });
+
+                if (hasSession) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        function loadTomorrowGoals() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            if (sessions.length > 0 && sessions[0].tomorrowGoals) {
+                const lastGoals = sessions[0].tomorrowGoals;
+                const statusEl = document.getElementById('timerStatus');
+                statusEl.innerHTML = `Ready to start<br><small style="font-size: 0.9em;">Last goal: ${lastGoals}</small>`;
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all practice history? This cannot be undone.')) {
+                localStorage.removeItem('practiceSessions');
+                loadHistory();
+                updateStats();
+            }
+        }
+    </script>
+</body>
+</html>
