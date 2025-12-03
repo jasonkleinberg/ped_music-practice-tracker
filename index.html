@@ -1,1 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Every Day - Practice Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #fef5f0;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 218, 224, 0.5) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 280px;
+            height: auto;
+            margin: 0 auto 15px;
+            display: block;
+            filter: drop-shadow(0 4px 20px rgba(255, 105, 180, 0.3));
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ff69b4;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            display: none; /* Logo replaces text */
+        }
+
+        header p {
+            font-size: 1.2em;
+            color: #6b4e71;
+            font-weight: 500;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 182, 193, 0.3);
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            color: #ff69b4;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.3);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #ff69b4, #ff85c1);
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: linear-gradient(135deg, #ff85c1, #ffa0d0);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #ffb6c1, #ffc8d1);
+            color: #6b4e71;
+        }
+
+        .btn-pause:hover {
+            background: linear-gradient(135deg, #ffc8d1, #ffd5dc);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #d4a5c3, #e1b8d3);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(135deg, #e1b8d3, #ecc9df);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #ff69b4, #ff85c1);
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #ff85c1, #ffa0d0);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #ff69b4 0%, #ffb6c1 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(255, 245, 250, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff69b4;
+            transition: transform 0.2s ease;
+        }
+
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #ff69b4;
+            margin-bottom: 5px;
+        }
+
+        .history-duration {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d4a5c3;
+            margin-bottom: 8px;
+        }
+
+        .history-text {
+            color: #4a5568;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .history-label {
+            font-weight: 600;
+            color: #2d3748;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .clear-history {
+            background: linear-gradient(135deg, #d4a5c3, #e1b8d3);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .clear-history:hover {
+            background: linear-gradient(135deg, #c494b3, #d4a5c3);
+        }
+
+        .timer-status {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Weekly Focus Styles */
+        .btn-edit-focus {
+            background: linear-gradient(135deg, #ffb6c1, #ffc8d1);
+            color: #6b4e71;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit-focus:hover {
+            background: linear-gradient(135deg, #ffc8d1, #ffd5dc);
+            transform: translateY(-1px);
+        }
+
+        /* Weekly Stats Styles */
+        .weekly-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .weekly-stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 182, 193, 0.1);
+            border-radius: 10px;
+        }
+
+        .weekly-stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ff69b4;
+            margin-bottom: 5px;
+        }
+
+        .weekly-stat-label {
+            font-size: 0.85em;
+            color: #6b4e71;
+            font-weight: 500;
+        }
+
+        .week-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .day-item {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 8px;
+            background: rgba(255, 182, 193, 0.1);
+        }
+
+        .day-name {
+            font-size: 0.75em;
+            color: #6b4e71;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .day-status {
+            font-size: 1.5em;
+        }
+
+        .day-item.practiced {
+            background: linear-gradient(135deg, #ff69b4, #ffb6c1);
+        }
+
+        .day-item.practiced .day-name {
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a2e;
+            }
+
+            body::before {
+                background: linear-gradient(135deg, rgba(139, 69, 139, 0.4) 0%, rgba(75, 0, 130, 0.3) 100%);
+            }
+
+            .card {
+                background: rgba(30, 30, 46, 0.95);
+                border: 2px solid rgba(255, 105, 180, 0.3);
+                box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5);
+            }
+
+            header p {
+                color: #ffb6c1;
+                font-weight: 400;
+            }
+
+            .timer-display {
+                color: #ff85c1;
+            }
+
+            label {
+                color: #d4a5c3;
+            }
+
+            textarea, input {
+                background: rgba(40, 40, 60, 0.8);
+                border-color: rgba(255, 105, 180, 0.3);
+                color: #ffffff;
+            }
+
+            textarea::placeholder, input::placeholder {
+                color: rgba(255, 182, 193, 0.5);
+            }
+
+            .history-item {
+                background: rgba(40, 40, 60, 0.6);
+                border-left-color: #ff85c1;
+            }
+
+            .history-text {
+                color: #d4d4d4;
+            }
+
+            .history-label {
+                color: #ffb6c1;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .timer-status {
+                color: #d4a5c3;
+            }
+
+            .empty-state {
+                color: #8a8a9e;
+            }
+
+            h2 {
+                color: #ffb6c1 !important;
+            }
+
+            .weekly-stat-item {
+                background: rgba(75, 0, 130, 0.2);
+            }
+
+            .weekly-stat-value {
+                color: #ff85c1;
+            }
+
+            .weekly-stat-label {
+                color: #d4a5c3;
+            }
+
+            .day-item {
+                background: rgba(75, 0, 130, 0.2);
+            }
+
+            .day-name {
+                color: #d4a5c3;
+            }
+
+            #weeklyFocusDisplay {
+                color: #ffb6c1 !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 3em;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="ped_podcast_logo.png" alt="Play Every Day" class="logo">
+            <h1>Play Every Day</h1>
+            <p>Track your daily practice sessions</p>
+        </header>
+
+        <!-- Stats Section -->
+        <div class="card">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalTime">0h 0m</div>
+                    <div class="stat-label">Total Practice</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="sessionCount">0</div>
+                    <div class="stat-label">Sessions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="streak">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Focus Section -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color: #2d3748; margin: 0;">🎯 This Week's Focus</h2>
+                <button class="btn-edit-focus" onclick="promptWeeklyFocus()">Edit</button>
+            </div>
+            <div id="weeklyFocusDisplay" style="font-size: 1.2em; color: #6b4e71; font-style: italic; min-height: 30px;">
+                Set your practice goal for this week!
+            </div>
+        </div>
+
+        <!-- Weekly Stats Section -->
+        <div class="card">
+            <h2 style="color: #2d3748; margin-bottom: 20px;">This Week</h2>
+            <div class="weekly-stats-grid">
+                <div class="weekly-stat-item">
+                    <div class="weekly-stat-value" id="weekSessions">0</div>
+                    <div class="weekly-stat-label">Sessions</div>
+                </div>
+                <div class="weekly-stat-item">
+                    <div class="weekly-stat-value" id="weekAverage">0m</div>
+                    <div class="weekly-stat-label">Avg Session</div>
+                </div>
+                <div class="weekly-stat-item">
+                    <div class="weekly-stat-value" id="weekTotal">0h 0m</div>
+                    <div class="weekly-stat-label">Total Time</div>
+                </div>
+            </div>
+            <div class="week-calendar" id="weekCalendar">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Timer Section -->
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748;">Today's Practice</h2>
+
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-status" id="timerStatus">Ready to start</div>
+
+            <div class="timer-controls">
+                <button class="btn-start" id="startBtn" onclick="startTimer()">Start</button>
+                <button class="btn-pause hidden" id="pauseBtn" onclick="pauseTimer()">Pause</button>
+                <button class="btn-stop hidden" id="stopBtn" onclick="stopTimer()">Stop</button>
+            </div>
+
+            <div id="sessionForm">
+                <div class="form-group">
+                    <label for="whatPracticed">What are you practicing? (write notes as you go)</label>
+                    <textarea id="whatPracticed" placeholder="E.g., Bile 'Em Cabbage Down, bow control exercises, D string notes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tomorrowGoals">What do you want to work on tomorrow?</label>
+                    <textarea id="tomorrowGoals" placeholder="E.g., Focus on tone in Mary Had a Little Lamb, practice string crossing..."></textarea>
+                </div>
+
+                <button class="btn-save" id="saveBtn" onclick="saveSession()">Save Practice Session</button>
+            </div>
+        </div>
+
+        <!-- Practice History -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #2d3748;">Practice History</h2>
+                <button class="clear-history" onclick="clearHistory()">Clear All</button>
+            </div>
+
+            <div class="history" id="historyList">
+                <div class="empty-state">
+                    <p>No practice sessions yet. Start practicing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let seconds = 0;
+        let isRunning = false;
+        let isPaused = false;
+        let startTime = null;
+        let pausedTime = 0;
+        let pauseStartTime = null;
+
+        // Helper functions for weekly focus
+        function getWeekStartDate(date = new Date()) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function getWeeklyFocusData() {
+            const data = localStorage.getItem('weeklyFocus');
+            return data ? JSON.parse(data) : null;
+        }
+
+        function saveWeeklyFocus(focus) {
+            const weekStart = getWeekStartDate();
+            const data = {
+                focus: focus,
+                weekStartDate: weekStart.toISOString(),
+                setDate: new Date().toISOString()
+            };
+            localStorage.setItem('weeklyFocus', JSON.stringify(data));
+        }
+
+        function isNewWeek() {
+            const focusData = getWeeklyFocusData();
+            if (!focusData) return true;
+
+            const currentWeekStart = getWeekStartDate();
+            const savedWeekStart = new Date(focusData.weekStartDate);
+
+            return currentWeekStart.getTime() !== savedWeekStart.getTime();
+        }
+
+        function promptWeeklyFocus(isNewWeek = false) {
+            const currentFocus = getWeeklyFocusData();
+            const message = isNewWeek
+                ? "New week! What's your main practice focus this week?"
+                : "What's your main practice focus this week?";
+            const defaultValue = (currentFocus && !isNewWeek) ? currentFocus.focus : "";
+
+            const focus = prompt(message, defaultValue);
+            if (focus !== null && focus.trim() !== "") {
+                saveWeeklyFocus(focus.trim());
+                loadWeeklyFocus();
+            }
+        }
+
+        function loadWeeklyFocus() {
+            const focusData = getWeeklyFocusData();
+            const display = document.getElementById('weeklyFocusDisplay');
+
+            if (focusData && focusData.focus) {
+                display.textContent = focusData.focus;
+                display.style.fontStyle = 'normal';
+            } else {
+                display.textContent = 'Set your practice goal for this week!';
+                display.style.fontStyle = 'italic';
+            }
+        }
+
+        function updateWeeklyStats() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            const weekStart = getWeekStartDate();
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+
+            // Filter sessions for this week
+            const weekSessions = sessions.filter(s => {
+                const sessionDate = new Date(s.date);
+                return sessionDate >= weekStart && sessionDate < weekEnd;
+            });
+
+            // Calculate stats
+            const sessionCount = weekSessions.length;
+            const totalSeconds = weekSessions.reduce((sum, s) => sum + s.duration, 0);
+            const avgSeconds = sessionCount > 0 ? totalSeconds / sessionCount : 0;
+
+            const totalHours = Math.floor(totalSeconds / 3600);
+            const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+            const avgMinutes = Math.floor(avgSeconds / 60);
+
+            // Update display
+            document.getElementById('weekSessions').textContent = sessionCount;
+            document.getElementById('weekAverage').textContent = `${avgMinutes}m`;
+            document.getElementById('weekTotal').textContent = totalHours > 0 ? `${totalHours}h ${totalMinutes}m` : `${totalMinutes}m`;
+
+            // Update calendar
+            updateWeekCalendar(weekSessions, weekStart);
+        }
+
+        function updateWeekCalendar(weekSessions, weekStart) {
+            const calendar = document.getElementById('weekCalendar');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + i);
+                date.setHours(0, 0, 0, 0);
+
+                const hasPractice = weekSessions.some(s => {
+                    const sessionDate = new Date(s.date);
+                    sessionDate.setHours(0, 0, 0, 0);
+                    return sessionDate.getTime() === date.getTime();
+                });
+
+                const isToday = date.toDateString() === new Date().toDateString();
+                const className = hasPractice ? 'day-item practiced' : 'day-item';
+
+                html += `
+                    <div class="${className}">
+                        <div class="day-name">${days[i]}</div>
+                        <div class="day-status">${hasPractice ? '✓' : (isToday ? '○' : '-')}</div>
+                    </div>
+                `;
+            }
+            calendar.innerHTML = html;
+        }
+
+        // Load data on startup
+        window.addEventListener('load', function() {
+            loadHistory();
+            updateStats();
+            loadTomorrowGoals();
+            loadWeeklyFocus();
+            updateWeeklyStats();
+        });
+
+        // Update display when returning to tab
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && isRunning) {
+                updateTimerDisplay();
+            }
+        });
+
+        function startTimer() {
+            if (!isRunning) {
+                // Check if it's a new week and prompt for focus
+                if (isNewWeek()) {
+                    promptWeeklyFocus(true);
+                }
+
+                isRunning = true;
+                isPaused = false;
+                startTime = Date.now();
+                pausedTime = 0;
+                document.getElementById('startBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').classList.remove('hidden');
+                document.getElementById('stopBtn').classList.remove('hidden');
+                document.getElementById('timerStatus').textContent = 'Practice in progress...';
+
+                timerInterval = setInterval(function() {
+                    updateTimerDisplay();
+                }, 100); // Update more frequently for smoother display
+            } else if (isPaused) {
+                // Resume from pause
+                isPaused = false;
+                // Add the paused duration to total paused time
+                pausedTime += Date.now() - pauseStartTime;
+                pauseStartTime = null;
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('timerStatus').textContent = 'Practice in progress...';
+                timerInterval = setInterval(function() {
+                    updateTimerDisplay();
+                }, 100);
+            }
+        }
+
+        function pauseTimer() {
+            if (isRunning && !isPaused) {
+                isPaused = true;
+                pauseStartTime = Date.now();
+                clearInterval(timerInterval);
+                document.getElementById('pauseBtn').textContent = 'Resume';
+                document.getElementById('timerStatus').textContent = 'Paused - Take a breath!';
+            } else if (isPaused) {
+                startTimer();
+            }
+        }
+
+        function stopTimer() {
+            if (isRunning && seconds > 0) {
+                // Calculate final time before resetting
+                if (!isPaused) {
+                    const elapsed = Math.floor((Date.now() - startTime - pausedTime) / 1000);
+                    seconds = elapsed;
+                }
+                isRunning = false;
+                isPaused = false;
+                clearInterval(timerInterval);
+                startTime = null;
+                pausedTime = 0;
+                pauseStartTime = null;
+                document.getElementById('startBtn').classList.remove('hidden');
+                document.getElementById('pauseBtn').classList.add('hidden');
+                document.getElementById('stopBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('timerStatus').textContent = 'Great work! Save your session below.';
+                document.getElementById('saveBtn').style.animation = 'pulse 1s ease-in-out 3';
+            }
+        }
+
+        function updateTimerDisplay() {
+            // Calculate elapsed time based on actual time, not intervals
+            if (isRunning && startTime) {
+                const now = Date.now();
+                const currentPausedTime = isPaused ? (now - pauseStartTime) : 0;
+                const elapsed = Math.floor((now - startTime - pausedTime - currentPausedTime) / 1000);
+                seconds = elapsed;
+            }
+
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            const display =
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(secs).padStart(2, '0');
+
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function saveSession() {
+            const whatPracticed = document.getElementById('whatPracticed').value.trim();
+            const tomorrowGoals = document.getElementById('tomorrowGoals').value.trim();
+
+            if (!whatPracticed) {
+                alert('Please fill in what you practiced!');
+                return;
+            }
+
+            const session = {
+                date: new Date().toISOString(),
+                duration: seconds,
+                whatPracticed: whatPracticed,
+                tomorrowGoals: tomorrowGoals
+            };
+
+            // Save to localStorage
+            let sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            sessions.unshift(session);
+            localStorage.setItem('practiceSessions', JSON.stringify(sessions));
+
+            // Reset form and timer
+            document.getElementById('whatPracticed').value = '';
+            document.getElementById('tomorrowGoals').value = '';
+            document.getElementById('timerDisplay').textContent = '00:00:00';
+            document.getElementById('timerStatus').textContent = 'Session saved! Ready for next practice.';
+            document.getElementById('saveBtn').style.animation = '';
+            seconds = 0;
+            startTime = null;
+            pausedTime = 0;
+            pauseStartTime = null;
+
+            // Refresh history and stats
+            loadHistory();
+            updateStats();
+            updateWeeklyStats();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTextWithLineBreaks(text) {
+            // Escape HTML first, then convert newlines to <br> tags
+            const escaped = escapeHtml(text);
+            return escaped.replace(/\n/g, '<br>');
+        }
+
+        function loadHistory() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            const historyList = document.getElementById('historyList');
+
+            if (sessions.length === 0) {
+                historyList.innerHTML = '<div class="empty-state"><p>No practice sessions yet. Start practicing!</p></div>';
+                return;
+            }
+
+            historyList.innerHTML = sessions.map(session => {
+                const date = new Date(session.date);
+                const hours = Math.floor(session.duration / 3600);
+                const minutes = Math.floor((session.duration % 3600) / 60);
+                const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-date">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <div class="history-duration">${duration}</div>
+                        <div class="history-text"><span class="history-label">Practiced:</span> ${formatTextWithLineBreaks(session.whatPracticed)}</div>
+                        ${session.tomorrowGoals ? `<div class="history-text"><span class="history-label">Next goal:</span> ${formatTextWithLineBreaks(session.tomorrowGoals)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+
+            // Total time
+            const totalSeconds = sessions.reduce((sum, s) => sum + s.duration, 0);
+            const totalHours = Math.floor(totalSeconds / 3600);
+            const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+            document.getElementById('totalTime').textContent = `${totalHours}h ${totalMinutes}m`;
+
+            // Session count
+            document.getElementById('sessionCount').textContent = sessions.length;
+
+            // Streak calculation
+            const streak = calculateStreak(sessions);
+            document.getElementById('streak').textContent = streak;
+        }
+
+        function calculateStreak(sessions) {
+            if (sessions.length === 0) return 0;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let streak = 0;
+            let checkDate = new Date(today);
+
+            for (let i = 0; i < 365; i++) {
+                const hasSession = sessions.some(s => {
+                    const sessionDate = new Date(s.date);
+                    sessionDate.setHours(0, 0, 0, 0);
+                    return sessionDate.getTime() === checkDate.getTime();
+                });
+
+                if (hasSession) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        function loadTomorrowGoals() {
+            const sessions = JSON.parse(localStorage.getItem('practiceSessions') || '[]');
+            if (sessions.length > 0 && sessions[0].tomorrowGoals) {
+                const lastGoals = sessions[0].tomorrowGoals;
+                const statusEl = document.getElementById('timerStatus');
+                statusEl.innerHTML = `Ready to start<br><small style="font-size: 0.9em;">Last goal: ${lastGoals}</small>`;
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all practice history? This cannot be undone.')) {
+                localStorage.removeItem('practiceSessions');
+                loadHistory();
+                updateStats();
+            }
+        }
+    </script>
+</body>
+</html>
 
